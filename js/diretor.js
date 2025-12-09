@@ -3,7 +3,6 @@ let dirPad;
 
 function setupPads(){
     const canvas = document.getElementById("pad-diretor");
-
     const ratio = window.devicePixelRatio || 1;
     canvas.width = canvas.offsetWidth * ratio;
     canvas.height = canvas.offsetHeight * ratio;
@@ -18,26 +17,14 @@ window.onload = setupPads;
 
 function clearPad(){ dirPad.clear(); }
 
-/* ================================================
-   ENVIO PARA A SECRETARIA
-================================================ */
+/* ENVIO PARA SECRETARIA */
 document.getElementById("btnEnviarDiretor").addEventListener("click", async () => {
-
     const alunoNome = document.getElementById("aluno_nome").value.trim();
-    if (!alunoNome){
-        alert("Erro: nome do aluno não carregou.");
-        return;
-    }
-
     const diretorNome = document.getElementById("diretor_nome").value.trim();
-    if (!diretorNome){
-        alert("Preencha o nome do diretor.");
-        return;
-    }
-
     const diretorData = document.getElementById("diretor_data").value;
-    if (!diretorData){
-        alert("Informe a data da assinatura.");
+
+    if (!alunoNome || !diretorNome || !diretorData){
+        alert("Preencha todos os campos obrigatórios.");
         return;
     }
 
@@ -46,30 +33,24 @@ document.getElementById("btnEnviarDiretor").addEventListener("click", async () =
         return;
     }
 
-    // Converter assinatura para arquivo PNG
     const assinaturaDiretor = dirPad.toDataURL("image/png");
     const assinaturaBlob = await (await fetch(assinaturaDiretor)).blob();
     const assinaturaFile = new File([assinaturaBlob], "Assinatura_Diretor.png", {
         type: "image/png"
     });
 
-    // Envio
     const formData = new FormData();
     formData.append("_captcha", "false");
     formData.append("_subject", `Ficha BBBE — Assinatura do Diretor (${alunoNome})`);
-
     formData.append("Aluno", alunoNome);
     formData.append("Diretor", diretorNome);
     formData.append("Data_Assinatura", diretorData);
     formData.append("Assinatura_Diretor", assinaturaFile);
 
-    // Envia SOMENTE para você
+    // Envia para o assessor
     const endpoint = "https://formsubmit.co/assessor.esportes@carlosbarbosa.rs.gov.br";
 
-    await fetch(endpoint, {
-        method: "POST",
-        body: formData
-    });
+    await fetch(endpoint, { method: "POST", body: formData });
 
     alert("Assinatura enviada com sucesso para a Secretaria!");
 });

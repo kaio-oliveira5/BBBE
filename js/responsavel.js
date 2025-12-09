@@ -31,17 +31,14 @@ document.getElementById("btnEnviar").addEventListener("click", async () => {
         alert("Preencha o nome do aluno.");
         return;
     }
-
     if (!document.getElementById("responsavel_nome").value.trim()){
         alert("Preencha o nome do responsável.");
         return;
     }
-
     if (resPad.isEmpty()){
         alert("A assinatura do responsável é obrigatória.");
         return;
     }
-
     const escolaEmail = document.getElementById("escola_selecionada").value;
     if(!escolaEmail){
         alert("Selecione a escola.");
@@ -141,7 +138,6 @@ document.getElementById("btnEnviar").addEventListener("click", async () => {
         doc.addImage(fotoURL, "JPEG", left, y, 120, 120);
     }
 
-    // Cria PDF
     const pdfBlob = doc.output("blob");
     const pdfFile = new File([pdfBlob], "Ficha_Responsavel.pdf", { type:"application/pdf" });
 
@@ -169,6 +165,10 @@ document.getElementById("btnEnviar").addEventListener("click", async () => {
     });
 
     alert("Ficha enviada com sucesso para a escola selecionada!");
+
+    // REDIRECIONAR para diretor.html com o nome do aluno
+    const alunoNome = encodeURIComponent(document.getElementById("nome_aluno").value);
+    window.location.href = `diretor.html?aluno=${alunoNome}`;
 });
 
 /* CONVERTER FOTO EM BASE64 */
@@ -183,7 +183,6 @@ function fileToBase64(file){
 
 /* MÁSCARA DE CPF */
 const cpfInput = document.getElementById("cpf");
-
 if (cpfInput){
     cpfInput.addEventListener("input", () => {
         let value = cpfInput.value;
@@ -198,7 +197,6 @@ if (cpfInput){
         else if (value.length > 9) {
             value = value.replace(/(\d{3})(\d{3})(\d{3})(\d+)/, "$1.$2.$3-$4");
         }
-
         cpfInput.value = value;
     });
 }
