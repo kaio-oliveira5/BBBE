@@ -26,7 +26,6 @@ function clearPad(p){ p.clear(); }
 ================================================ */
 document.getElementById("btnEnviar").addEventListener("click", async () => {
 
-    // VALIDAÇÕES
     if (!document.getElementById("nome_aluno").value.trim()){
         alert("Preencha o nome do aluno.");
         return;
@@ -39,15 +38,16 @@ document.getElementById("btnEnviar").addEventListener("click", async () => {
         alert("A assinatura do responsável é obrigatória.");
         return;
     }
+
     const escolaEmail = document.getElementById("escola_selecionada").value;
     if(!escolaEmail){
         alert("Selecione a escola.");
         return;
     }
 
-    // ===========================================
-    // GERAR PDF
-    // ===========================================
+    /* ===========================================
+       GERAR PDF
+    =========================================== */
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ unit:"pt", format:"a4" });
 
@@ -67,7 +67,7 @@ document.getElementById("btnEnviar").addEventListener("click", async () => {
         y += 18;
     }
 
-    // DADOS DO ALUNO
+    // --- DADOS DO ALUNO ---
     doc.setFont("helvetica", "bold");
     doc.setFontSize(14);
     doc.text("Dados do Aluno", left, y);
@@ -88,7 +88,7 @@ document.getElementById("btnEnviar").addEventListener("click", async () => {
 
     y += 10;
 
-    // DADOS DOS RESPONSÁVEIS
+    // --- DADOS DOS RESPONSÁVEIS ---
     doc.setFont("helvetica", "bold");
     doc.setFontSize(14);
     doc.text("Dados dos Responsáveis", left, y);
@@ -104,7 +104,7 @@ document.getElementById("btnEnviar").addEventListener("click", async () => {
 
     y += 10;
 
-    // NÚCLEO
+    // --- NÚCLEO ---
     doc.setFont("helvetica", "bold");
     doc.setFontSize(14);
     doc.text("Núcleo", left, y);
@@ -115,7 +115,7 @@ document.getElementById("btnEnviar").addEventListener("click", async () => {
 
     y += 20;
 
-    // ASSINATURA DO RESPONSÁVEL
+    // --- ASSINATURA ---
     doc.setFont("helvetica", "bold");
     doc.setFontSize(14);
     doc.text("Assinatura do Responsável", left, y);
@@ -141,22 +141,23 @@ document.getElementById("btnEnviar").addEventListener("click", async () => {
     const pdfBlob = doc.output("blob");
     const pdfFile = new File([pdfBlob], "Ficha_Responsavel.pdf", { type:"application/pdf" });
 
-    // ===========================================
-    // ENVIO PARA FORM SUBMIT (DINÂMICO)
-    // ===========================================
-    const assessorEmail = "assessor.esportes@carlosbarbosa.rs.gov.br"; // cópia
+    /* ===========================================
+       ENVIO PARA ESCOLA + ASSESSOR
+    =========================================== */
+    const assessorEmail = "assessor.esportes@carlosbarbosa.rs.gov.br";
 
     const formData = new FormData();
     formData.append("_captcha", "false");
     formData.append("PDF_Responsavel", pdfFile);
+
     if (fotoInput.files.length > 0){
         formData.append("Foto_Aluno", fotoInput.files[0]);
     }
 
-    // CC: enviar cópia para assessor
+    // CC para o assessor
     formData.append("_cc", assessorEmail);
 
-    // Endpoint principal é o e-mail da escola selecionada
+    // Endpoint principal → diretor da escola
     const endpoint = `https://formsubmit.co/${escolaEmail}`;
 
     await fetch(endpoint, {
@@ -164,9 +165,9 @@ document.getElementById("btnEnviar").addEventListener("click", async () => {
         body: formData
     });
 
-    alert("Ficha enviada com sucesso para a escola selecionada!");
+    alert("Ficha enviada com sucesso!");
 
-    // REDIRECIONAR para diretor.html com o nome do aluno
+    // REDIRECIONAR para diretor.html
     const alunoNome = encodeURIComponent(document.getElementById("nome_aluno").value);
     window.location.href = `diretor.html?aluno=${alunoNome}`;
 });
@@ -181,22 +182,16 @@ function fileToBase64(file){
     });
 }
 
-/* MÁSCARA DE CPF */
+/* MÁSCARA CPF */
 const cpfInput = document.getElementById("cpf");
 if (cpfInput){
     cpfInput.addEventListener("input", () => {
-        let value = cpfInput.value;
-        value = value.replace(/\D/g, "");
+        let v = cpfInput.value.replace(/\D/g, "");
 
-        if (value.length > 3 && value.length <= 6) {
-            value = value.replace(/(\d{3})(\d+)/, "$1.$2");
-        } 
-        else if (value.length > 6 && value.length <= 9) {
-            value = value.replace(/(\d{3})(\d{3})(\d+)/, "$1.$2.$3");
-        } 
-        else if (value.length > 9) {
-            value = value.replace(/(\d{3})(\d{3})(\d{3})(\d+)/, "$1.$2.$3-$4");
-        }
-        cpfInput.value = value;
+        if (v.length > 3 && v.length <= 6) v = v.replace(/(\d{3})(\d+)/, "$1.$2");
+        else if (v.length > 6 && v.length <= 9) v = v.replace(/(\d{3})(\d{3})(\d+)/, "$1.$2.$3");
+        else if (v.length > 9) v = v.replace(/(\d{3})(\d{3})(\d{3})(\d+)/, "$1.$2.$3-$4");
+
+        cpfInput.value = v;
     });
 }
