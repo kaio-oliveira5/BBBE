@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Assinatura do Diretor – Projeto BBBE</title>
+
+<!-- Bootstrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+<!-- SignaturePad -->
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+
+<style>
+    body{
+        font-family: Arial, sans-serif;
+        background:#eef1f5;
+        margin:0;
+        padding:20px;
+        display:flex;
+        justify-content:center;
+    }
+    .wrap{
+        background:white;
+        max-width:600px;
+        width:100%;
+        padding:25px;
+        border-radius:12px;
+        box-shadow:0 4px 15px rgba(0,0,0,0.1);
+    }
+    h2{
+        text-align:center;
+        margin-bottom:20px;
+        color:#1a73e8;
+    }
+    label{
+        font-weight:bold;
+        margin-top:12px;
+        display:block;
+    }
+    input{
+        width:100%;
+        padding:10px;
+        border-radius:6px;
+        border:1px solid #ccc;
+        margin-top:5px;
+        box-sizing:border-box;
+    }
+    .sign-area{
+        border:1px dashed #999;
+        margin-top:8px;
+        padding:8px;
+        border-radius:8px;
+        background:white;
+    }
+    canvas{
+        width:100%;
+        height:200px;
+        background:white;
+        border-radius:6px;
+    }
+    button{
+        width:100%;
+        padding:14px;
+        margin-top:18px;
+        font-size:16px;
+        border:none;
+        border-radius:8px;
+        cursor:pointer;
+    }
+    .btn-primary{
+        background:#1a73e8;
+        color:white;
+    }
+    .btn-secondary{
+        background:#eee;
+        margin-top:8px;
+    }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+    <h2>Assinatura do Diretor<br>Projeto BBBE</h2>
+
+    <label>Aluno:</label>
+    <input type="text" id="aluno_nome" readonly>
+
+    <label>Nome do Diretor:</label>
+    <input type="text" id="diretor_nome" placeholder="Ex.: João Silva">
+
+    <label>Data da Assinatura:</label>
+    <input type="date" id="diretor_data">
+
+    <label>Assinatura do Diretor:</label>
+    <div class="sign-area">
+        <canvas id="pad-diretor"></canvas>
+    </div>
+
+    <button type="button" class="btn-secondary" onclick="clearPad()">Limpar assinatura</button>
+
+    <button type="button" class="btn-primary" id="btnEnviarDiretor">
+        Enviar para Secretaria
+    </button>
+
+</div>
+
+<script src="js/diretor.js"></script>
+
+<script>
+    // Carregar nome do aluno pela URL ex: diretor.html?aluno=Maria%20Silva
+    const params = new URLSearchParams(window.location.search);
+    const alunoNome = params.get("aluno");
+
+    if (alunoNome) {
+        document.getElementById("aluno_nome").value = alunoNome;
+    } else {
+        document.getElementById("aluno_nome").value = "NOME NÃO INFORMADO";
+    }
+</script>
+
+
+</body>
+</html>
