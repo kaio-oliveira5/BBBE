@@ -26,6 +26,7 @@ function clearPad(p){ p.clear(); }
 ================================================ */
 document.getElementById("btnEnviar").addEventListener("click", async () => {
 
+    // VALIDAÇÕES
     if (!document.getElementById("nome_aluno").value.trim()){
         alert("Preencha o nome do aluno.");
         return;
@@ -38,16 +39,15 @@ document.getElementById("btnEnviar").addEventListener("click", async () => {
         alert("A assinatura do responsável é obrigatória.");
         return;
     }
-
     const escolaEmail = document.getElementById("escola_selecionada").value;
     if(!escolaEmail){
         alert("Selecione a escola.");
         return;
     }
 
-    /* ===========================================
-       GERAR PDF
-    =========================================== */
+    // ===========================================
+    // GERAR PDF
+    // ===========================================
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ unit:"pt", format:"a4" });
 
@@ -67,7 +67,7 @@ document.getElementById("btnEnviar").addEventListener("click", async () => {
         y += 18;
     }
 
-    // --- DADOS DO ALUNO ---
+    // DADOS DO ALUNO
     doc.setFont("helvetica", "bold");
     doc.setFontSize(14);
     doc.text("Dados do Aluno", left, y);
@@ -88,7 +88,7 @@ document.getElementById("btnEnviar").addEventListener("click", async () => {
 
     y += 10;
 
-    // --- DADOS DOS RESPONSÁVEIS ---
+    // DADOS DOS RESPONSÁVEIS
     doc.setFont("helvetica", "bold");
     doc.setFontSize(14);
     doc.text("Dados dos Responsáveis", left, y);
@@ -104,7 +104,7 @@ document.getElementById("btnEnviar").addEventListener("click", async () => {
 
     y += 10;
 
-    // --- NÚCLEO ---
+    // NÚCLEO
     doc.setFont("helvetica", "bold");
     doc.setFontSize(14);
     doc.text("Núcleo", left, y);
@@ -115,7 +115,7 @@ document.getElementById("btnEnviar").addEventListener("click", async () => {
 
     y += 20;
 
-    // --- ASSINATURA ---
+    // ASSINATURA DO RESPONSÁVEL
     doc.setFont("helvetica", "bold");
     doc.setFontSize(14);
     doc.text("Assinatura do Responsável", left, y);
@@ -141,35 +141,43 @@ document.getElementById("btnEnviar").addEventListener("click", async () => {
     const pdfBlob = doc.output("blob");
     const pdfFile = new File([pdfBlob], "Ficha_Responsavel.pdf", { type:"application/pdf" });
 
-    /* ===========================================
-       ENVIO PARA ESCOLA + ASSESSOR
-    =========================================== */
+    // ===========================================
+    // ENVIO PARA FORM SUBMIT (ESCOLA/DIRETOR + ASSESSOR)
+    // ===========================================
     const assessorEmail = "assessor.esportes@carlosbarbosa.rs.gov.br";
+    const diretorEmail = escolaEmail; // e-mail do diretor vindo do select
+
+    // monta o link do diretor (usando seu domínio fornecido)
+    const baseDiretorURL = "https://bbbe.vercel.app/diretor.html";
+    const nomeAluno = document.getElementById("nome_aluno").value.trim();
+    const urlDiretor = `${baseDiretorURL}?aluno=${encodeURIComponent(nomeAluno)}`;
 
     const formData = new FormData();
     formData.append("_captcha", "false");
+
+    // anexa o PDF
     formData.append("PDF_Responsavel", pdfFile);
 
+    // se existir foto, anexa também
     if (fotoInput.files.length > 0){
         formData.append("Foto_Aluno", fotoInput.files[0]);
     }
 
-    // CC para o assessor
+    // campo extra com o link para o diretor assinar (aparecerá no email)
+    formData.append("Link_para_assinatura_do_diretor", urlDiretor);
+
+    // envia cópia para o assessor
     formData.append("_cc", assessorEmail);
 
-    // Endpoint principal → diretor da escola
-    const endpoint = `https://formsubmit.co/${escolaEmail}`;
+    // endpoint principal é o e-mail do diretor (value do select)
+    const endpoint = `https://formsubmit.co/${diretorEmail}`;
 
     await fetch(endpoint, {
         method: "POST",
         body: formData
     });
 
-    alert("Ficha enviada com sucesso!");
-
-    // REDIRECIONAR para diretor.html
-    const alunoNome = encodeURIComponent(document.getElementById("nome_aluno").value);
-    window.location.href = `diretor.html?aluno=${alunoNome}`;
+    alert("Ficha enviada com sucesso! O diretor recebeu o e-mail com o link para assinar.");
 });
 
 /* CONVERTER FOTO EM BASE64 */
@@ -182,16 +190,22 @@ function fileToBase64(file){
     });
 }
 
-/* MÁSCARA CPF */
+/* MÁSCARA DE CPF */
 const cpfInput = document.getElementById("cpf");
 if (cpfInput){
     cpfInput.addEventListener("input", () => {
-        let v = cpfInput.value.replace(/\D/g, "");
+        let value = cpfInput.value;
+        value = value.replace(/\D/g, "");
 
-        if (v.length > 3 && v.length <= 6) v = v.replace(/(\d{3})(\d+)/, "$1.$2");
-        else if (v.length > 6 && v.length <= 9) v = v.replace(/(\d{3})(\d{3})(\d+)/, "$1.$2.$3");
-        else if (v.length > 9) v = v.replace(/(\d{3})(\d{3})(\d{3})(\d+)/, "$1.$2.$3-$4");
-
-        cpfInput.value = v;
+        if (value.length > 3 && value.length <= 6) {
+            value = value.replace(/(\d{3})(\d+)/, "$1.$2");
+        } 
+        else if (value.length > 6 && value.length <= 9) {
+            value = value.replace(/(\d{3})(\d{3})(\d+)/, "$1.$2.$3");
+        } 
+        else if (value.length > 9) {
+            value = value.replace(/(\d{3})(\d{3})(\d{3})(\d+)/, "$1.$2.$3-$4");
+        }
+        cpfInput.value = value;
     });
 }
