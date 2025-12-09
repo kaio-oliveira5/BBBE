@@ -49,7 +49,7 @@ document.getElementById("btnEnviar").addEventListener("click", async () => {
     }
 
     // ===========================================
-    // GERAR PDF PARCIAL
+    // GERAR PDF
     // ===========================================
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ unit:"pt", format:"a4" });
@@ -61,7 +61,6 @@ document.getElementById("btnEnviar").addEventListener("click", async () => {
     doc.text("Projeto BBBE - Inscrição (Responsável)", left, y);
     y += 30;
 
-    // Função utilitária
     function addLine(label, value){
         doc.setFontSize(12);
         doc.setFont("helvetica", "bold");
@@ -131,12 +130,12 @@ document.getElementById("btnEnviar").addEventListener("click", async () => {
     y += 10;
 
     const assinaturaResp = resPad.toDataURL("image/png");
-    doc.addImage( assinaturaResp, "PNG", left, y, 200, 80 );
+    doc.addImage(assinaturaResp, "PNG", left, y, 200, 80);
     y += 100;
 
     // FOTO DO ALUNO
     const fotoInput = document.getElementById("foto_aluno");
-    if (fotoInput.files.length > 0) {
+    if (fotoInput.files.length > 0){
         const foto = fotoInput.files[0];
         const fotoURL = await fileToBase64(foto);
         doc.addImage(fotoURL, "JPEG", left, y, 120, 120);
@@ -146,21 +145,27 @@ document.getElementById("btnEnviar").addEventListener("click", async () => {
     const pdfBlob = doc.output("blob");
     const pdfFile = new File([pdfBlob], "Ficha_Responsavel.pdf", { type:"application/pdf" });
 
-    // ENVIAR PARA O DIRETOR + CÓPIA PARA VOCÊ
+    // ===========================================
+    // ENVIO PARA FORM SUBMIT (DINÂMICO)
+    // ===========================================
+    const assessorEmail = "assessor.esportes@carlosbarbosa.rs.gov.br"; // cópia
+
     const formData = new FormData();
-    formData.append("_cc", `assessor.esportes@carlosbarbosa.rs.gov.br, ${escolaEmail}`);
     formData.append("_captcha", "false");
     formData.append("PDF_Responsavel", pdfFile);
-
     if (fotoInput.files.length > 0){
         formData.append("Foto_Aluno", fotoInput.files[0]);
     }
 
+    // CC: enviar cópia para assessor
+    formData.append("_cc", assessorEmail);
+
+    // Endpoint principal é o e-mail da escola selecionada
     const endpoint = `https://formsubmit.co/${escolaEmail}`;
 
     await fetch(endpoint, {
-        method:"POST",
-        body:formData
+        method: "POST",
+        body: formData
     });
 
     alert("Ficha enviada com sucesso para a escola selecionada!");
@@ -176,16 +181,12 @@ function fileToBase64(file){
     });
 }
 
-/* ===================================================
-   MÁSCARA DE CPF (ADICIONADA AQUI)
-=================================================== */
+/* MÁSCARA DE CPF */
 const cpfInput = document.getElementById("cpf");
 
 if (cpfInput){
     cpfInput.addEventListener("input", () => {
         let value = cpfInput.value;
-
-        // Remove tudo que não é número
         value = value.replace(/\D/g, "");
 
         if (value.length > 3 && value.length <= 6) {
